@@ -49,7 +49,8 @@
         "symfony/yaml": "6.3.*",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0",
-        "willdurand/hateoas-bundle": "^2.6"
+        "willdurand/hateoas-bundle": "^2.6",
+        "symfony/apache-pack": "^1.0"
     },
     "config": {
         "allow-plugins": {
