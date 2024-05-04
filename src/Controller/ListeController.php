@@ -35,7 +35,7 @@ class ListeController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/liste', name: 'AllListe', methods: ['GET'])]
-    public function GetAllListe(Security $security, ListeRepository $listeRepository,  SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
+    public function GetAllListe(Security $security, ListeRepository $listeRepository, SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
     {
         $user = $security->getUser();
         // Obtient l'utilisateur authentifié
@@ -53,7 +53,7 @@ class ListeController extends AbstractController
     }
 
     /**
-     * Méthode temporaire pour vider le cache. 
+     * Méthode temporaire pour vider le cache.
      *
      * @param TagAwareCacheInterface $cache
      * @return void
@@ -96,10 +96,6 @@ class ListeController extends AbstractController
     {
         $user = $security->getUser();
 
-        // if (!$user) {
-        //     return new JsonResponse(['message' => 'User not authenticated'], JsonResponse::HTTP_UNAUTHORIZED);
-        // }
-
         // Crée une nouvelle instance de Liste
         $liste = $serializer->deserialize($request->getContent(), Liste::class, 'json');
 
@@ -116,7 +112,7 @@ class ListeController extends AbstractController
         $em->persist($liste);
         $em->flush();
 
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
 
         $context = SerializationContext::create()->setGroups(["getTache"]);
@@ -162,7 +158,7 @@ class ListeController extends AbstractController
         $em->persist($currentListe);
         $em->flush();
 
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
@@ -180,7 +176,7 @@ class ListeController extends AbstractController
         $em->remove($liste);
         $em->flush();
 
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
