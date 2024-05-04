@@ -45,9 +45,9 @@ class UserController extends AbstractController
         JWTTokenManagerInterface $JWTManager,
         TagAwareCacheInterface $cache
     ): JsonResponse {
+        $content = html_entity_decode($request->getContent());
         // Désérialise la requête JSON en un objet User
-        $user = $serializer->deserialize($request->getContent(), User::class, 'json');
-
+        $user = $serializer->deserialize($content, User::class, 'json');
         // Récupère l'email et le mot de passe de l'objet User
         $email = $user->getEmail();
         $password = $user->getPassword();
@@ -74,7 +74,7 @@ class UserController extends AbstractController
         $em->persist($user);
         $em->flush();
 
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
         // Génère un jeton JWT pour le nouvel utilisateur
         $token = $JWTManager->create($user);
@@ -172,7 +172,7 @@ class UserController extends AbstractController
     }
 
     /**
-     * Cette méthode permet de récupérer un auteur en particulier en fonction de son id. 
+     * Cette méthode permet de récupérer un auteur en particulier en fonction de son id.
      *
      * @param User $author
      * @param SerializerInterface $serializer
