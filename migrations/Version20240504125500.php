@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20231218181833 extends AbstractMigration
+final class Version20240504125500 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -19,13 +19,13 @@ final class Version20231218181833 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tache CHANGE status status TINYINT(1) DEFAULT 0 NOT NULL');
+        // this up() migration is modified to set a default value of 0 (false)
+        $this->addSql('ALTER TABLE tache CHANGE status status BOOLEAN DEFAULT 0');
     }
 
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE tache CHANGE status status TINYINT(1) DEFAULT 0');
+        // this down() migration is modified to set the default value to NULL
+        $this->addSql('ALTER TABLE tache CHANGE status status BOOLEAN DEFAULT 1');
     }
 }
