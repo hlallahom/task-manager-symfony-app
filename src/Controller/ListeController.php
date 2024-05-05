@@ -113,7 +113,7 @@ class ListeController extends AbstractController
         $em->flush();
 
         // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
+        //$cache->invalidateTags(["listeCache"]);
 
         $context = SerializationContext::create()->setGroups(["getTache"]);
         $jsonListe = $serializer->serialize($liste, 'json', $context);
@@ -158,7 +158,7 @@ class ListeController extends AbstractController
         $em->flush();
 
         // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
+        //$cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
 

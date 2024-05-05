@@ -105,7 +105,7 @@ class TacheController extends AbstractController
         $em->flush();
 
         // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
+        //$cache->invalidateTags(["listeCache"]);
         $context = SerializationContext::create()->setGroups(["getTache"]);
         $jsonTache = $serializer->serialize($tache, 'json', $context);
 
@@ -151,7 +151,7 @@ class TacheController extends AbstractController
         $em->persist($currentTache);
         $em->flush();
         // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
+        //$cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
