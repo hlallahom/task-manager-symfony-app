@@ -19,8 +19,6 @@ use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 
 #[Route('/api')]
 #[IsGranted('IS_AUTHENTICATED_FULLY', message: 'Vous n\'avez pas les droits suffisants pour créer un livre')]
@@ -35,34 +33,14 @@ class ListeController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/liste', name: 'AllListe', methods: ['GET'])]
-    public function GetAllListe(Security $security, ListeRepository $listeRepository, SerializerInterface $serializer, TagAwareCacheInterface $cachePool): JsonResponse
+    public function GetAllListe(Security $security, ListeRepository $listeRepository, SerializerInterface $serializer): JsonResponse
     {
         $user = $security->getUser();
-        // Obtient l'utilisateur authentifié
-        $idCache = "getAllListe-";
-        $jsonListe = $cachePool->get($idCache, function (ItemInterface $item) use ($listeRepository, $serializer, $user) {
-            echo ("L'element n'est pas encore en cache");
-            $item->tag("listeCache");
-            $listeAll = $listeRepository->findBy(['user' => $user]);
-            $context = SerializationContext::create()->setGroups(["getTache"]);
-            return $serializer->serialize($listeAll, 'json', $context);
-        });
-
+        $listeAll = $listeRepository->findBy(['user' => $user]);
+        $context = SerializationContext::create()->setGroups(["getTache"]);
+        $jsonListe = $serializer->serialize($listeAll, 'json', $context);
         // Récupère les listes associées à l'utilisateur authentifié
         return new JsonResponse($jsonListe, Response::HTTP_OK, ['accept' => 'json'], true);
-    }
-
-    /**
-     * Méthode temporaire pour vider le cache.
-     *
-     * @param TagAwareCacheInterface $cache
-     * @return void
-     */
-    #[Route('liste/clearCache', name: "clearCache", methods: ['GET'])]
-    public function clearCache(TagAwareCacheInterface $cache)
-    {
-        $cache->invalidateTags(["listeCache"]);
-        return new JsonResponse("Cache Vidé", JsonResponse::HTTP_OK);
     }
 
     /**
@@ -92,7 +70,7 @@ class ListeController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/liste', name: "createListe", methods: ['POST'])]
-    public function createListe(Security $security, ValidatorInterface $validator, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, TagAwareCacheInterface $cache): JsonResponse
+    public function createListe(Security $security, ValidatorInterface $validator, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator): JsonResponse
     {
         $user = $security->getUser();
 
@@ -111,9 +89,6 @@ class ListeController extends AbstractController
 
         $em->persist($liste);
         $em->flush();
-
-        // On vide le cache.
-        //$cache->invalidateTags(["listeCache"]);
 
         $context = SerializationContext::create()->setGroups(["getTache"]);
         $jsonListe = $serializer->serialize($liste, 'json', $context);
@@ -139,8 +114,7 @@ class ListeController extends AbstractController
         Liste $currentListe,
         EntityManagerInterface $em,
         ValidatorInterface $validator,
-        UserRepository $userRepository,
-        TagAwareCacheInterface $cache
+        UserRepository $userRepository
     ): JsonResponse {
         $newListe = $serializer->deserialize($request->getContent(), Liste::class, 'json');
         $currentListe->setTitre($newListe->getTitre());
@@ -157,8 +131,6 @@ class ListeController extends AbstractController
         $em->persist($currentListe);
         $em->flush();
 
-        // On vide le cache.
-        //$cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
@@ -170,13 +142,10 @@ class ListeController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/liste/{id}', name: 'deleteListe', methods: ['DELETE'])]
-    public function deleteListe(Liste $liste, EntityManagerInterface $em, TagAwareCacheInterface $cache): JsonResponse
+    public function deleteListe(Liste $liste, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($liste);
         $em->flush();
-
-        // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
 
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }

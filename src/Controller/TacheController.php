@@ -17,8 +17,6 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Symfony\Contracts\Cache\ItemInterface;
-use Symfony\Contracts\Cache\TagAwareCacheInterface;
 use App\Service\VersioningService;
 
 #[Route('/api/liste/{listeId}')]
@@ -34,18 +32,13 @@ class TacheController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/tache', name: 'TacheByListeId', methods: ['GET'])]
-    public function GetTacheByListeId(int $listeId, TagAwareCacheInterface $cachePool, TacheRepository $tacheRepository, SerializerInterface $serializer): JsonResponse
+    public function GetTacheByListeId(int $listeId, TacheRepository $tacheRepository, SerializerInterface $serializer): JsonResponse
     {
         // Récupère toutes les tâches appartenant à une liste spécifique (listeId)
         $tache = $tacheRepository->findBy(['liste' => $listeId]);
-        $idCache = "getAllTache";
 
-        $jsonTache = $cachePool->get($idCache, function (ItemInterface $item) use ($tacheRepository, $serializer, $tache) {
-            echo ("L'element n'est pas encore en cache");
-            $item->tag("listeCache");
-            $context = SerializationContext::create()->setGroups(["getTache"]);
-            return $serializer->serialize($tache, 'json', $context);
-        });
+        $context = SerializationContext::create()->setGroups(["getTache"]);
+        $jsonTache = $serializer->serialize($tache, 'json', $context);
         // Sérialise les tâches en JSON
         return new JsonResponse($jsonTache, Response::HTTP_OK, [], true);
     }
@@ -80,7 +73,7 @@ class TacheController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/tache', name: 'createTache', methods: ['POST'])]
-    public function createTache(TagAwareCacheInterface $cache, ValidatorInterface $validator, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ListeRepository $listeRepository, int $listeId): JsonResponse
+    public function createTache(ValidatorInterface $validator, Request $request, SerializerInterface $serializer, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator, ListeRepository $listeRepository, int $listeId): JsonResponse
     {
         // Désérialise la tâche à partir des données JSON de la requête
         $tache = $serializer->deserialize($request->getContent(), Tache::class, 'json');
@@ -104,8 +97,6 @@ class TacheController extends AbstractController
         $em->persist($tache);
         $em->flush();
 
-        // On vide le cache.
-        //$cache->invalidateTags(["listeCache"]);
         $context = SerializationContext::create()->setGroups(["getTache"]);
         $jsonTache = $serializer->serialize($tache, 'json', $context);
 
@@ -125,7 +116,6 @@ class TacheController extends AbstractController
      */
     #[Route('/tache/{id}', name: 'updateTache', methods: ['PATCH'])]
     public function updateTache(
-        TagAwareCacheInterface $cache,
         Request $request,
         SerializerInterface $serializer,
         ValidatorInterface $validator,
@@ -145,13 +135,12 @@ class TacheController extends AbstractController
         }
 
 
-        $idListe = $newTache->getUser()->getId() ?? -1;
+        $idListe = !empty($newTache->getListe()) ? $newTache->getListe()->getId() : $currentTache->getListe()->getId();
         $currentTache->setListe($listeRepository->find($idListe));
 
         $em->persist($currentTache);
         $em->flush();
-        // On vide le cache.
-        //$cache->invalidateTags(["listeCache"]);
+        
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
 
@@ -163,12 +152,10 @@ class TacheController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/tache/{id}', name: 'deleteTache', methods: ['DELETE'])]
-    public function deleteTache(TagAwareCacheInterface $cache, Tache $tache, EntityManagerInterface $em): JsonResponse
+    public function deleteTache(Tache $tache, EntityManagerInterface $em): JsonResponse
     {
         $em->remove($tache);
         $em->flush();
-        // On vide le cache.
-        $cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
 }
