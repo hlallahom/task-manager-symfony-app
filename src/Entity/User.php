@@ -13,7 +13,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation\Groups;
 use Hateoas\Configuration\Annotation as Hateoas;
 
-
 /**
  * @Hateoas\Relation(
  *      "self",
@@ -24,7 +23,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      exclusion = @Hateoas\Exclusion(groups="getTache")
  * )
  *
- * 
+ *
  */
 #[ApiResource()]
 #[ORM\Entity(repositoryClass: UserRepository::class)]

@@ -21,27 +21,27 @@ final class Version20231218175355 extends AbstractMigration
     {
         // this up() migration is modified to set a default value of 0 (false)
         $this->addSql('CREATE TABLE `liste` (
-            `id` int NOT NULL,
+            `id` PRIMARY KEY NOT NULL AUTO_INCREMENT,
             `user_id` int DEFAULT NULL,
             `titre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;');
 
         $this->addSql('CREATE TABLE `refresh_tokens` (
-            `id` int NOT NULL,
+            `id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
             `refresh_token` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
             `username` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
             `valid` datetime NOT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;');
         
         $this->addSql('CREATE TABLE `tache` (
-            `id` int NOT NULL,
+            `id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
             `liste_id` int NOT NULL,
             `titre` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
             `status` tinyint(1) DEFAULT NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;');
         
         $this->addSql('CREATE TABLE `user` (
-            `id` int NOT NULL,
+            `id` int PRIMARY KEY NOT NULL AUTO_INCREMENT,
             `email` varchar(180) COLLATE utf8mb4_unicode_ci NOT NULL,
             `roles` json NOT NULL,
             `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL

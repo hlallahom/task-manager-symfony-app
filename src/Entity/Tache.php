@@ -10,7 +10,6 @@ use JMS\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use JMS\Serializer\Annotation\Since;
 
-
 #[ApiResource()]
 #[ORM\Entity(repositoryClass: TacheRepository::class)]
 class Tache
@@ -63,7 +62,7 @@ class Tache
         return $this->status;
     }
 
-    public function setStatus(bool $status): static
+    public function setStatus(bool $status = false): static
     {
         $this->status = $status;
 

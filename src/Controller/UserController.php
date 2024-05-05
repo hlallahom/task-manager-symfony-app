@@ -20,6 +20,15 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\Cache\TagAwareCacheInterface;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Serializer\Exception\PartialDenormalizationException;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 #[Route('/api')]
 class UserController extends AbstractController
@@ -45,9 +54,31 @@ class UserController extends AbstractController
         JWTTokenManagerInterface $JWTManager,
         TagAwareCacheInterface $cache
     ): JsonResponse {
-        $content = html_entity_decode($request->getContent());
         // Désérialise la requête JSON en un objet User
-        $user = $serializer->deserialize($content, User::class, 'json');
+        try {
+            $encoders = [new XmlEncoder(), new JsonEncoder()];
+            $normalizers = [new ObjectNormalizer()];
+            $serializer = new Serializer($normalizers, $encoders);
+            $content = preg_replace('/([\w\d]+): /', '"$1": ', $request->getContent());
+            $user = $serializer->deserialize($content, User::class, 'json', [
+                DenormalizerInterface::COLLECT_DENORMALIZATION_ERRORS => true,
+            ]);
+        } catch (PartialDenormalizationException $e) {
+            $violations = new ConstraintViolationList();
+            /** @var NotNormalizableValueException $exception */
+            foreach ($e->getErrors() as $exception) {
+                $message = sprintf('The type must be one of "%s" ("%s" given).', implode(', ', $exception->getExpectedTypes()), $exception->getCurrentType());
+                $parameters = [];
+                if ($exception->canUseMessageForUser()) {
+                    $parameters['hint'] = $exception->getMessage();
+                }
+                $violations->add(new ConstraintViolation($message, '', $parameters, null, $exception->getPath(), null));
+            }
+        
+            return $this->json($violations, 400);
+        }
+        
+        
         // Récupère l'email et le mot de passe de l'objet User
         $email = $user->getEmail();
         $password = $user->getPassword();
@@ -101,7 +132,8 @@ class UserController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher
     ) {
         // Obtient les identifiants de l'utilisateur depuis la requête (par exemple, email et mot de passe)
-        $credentials = json_decode($request->getContent(), true);
+        $content = preg_replace('/([\w\d]+): /', '"$1": ', $request->getContent());
+        $credentials = json_decode($content, true);
         $email = $credentials['email'] ?? null;
         $password = $credentials['password'] ?? null;
 
