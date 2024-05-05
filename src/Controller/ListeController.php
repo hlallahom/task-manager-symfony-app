@@ -151,7 +151,6 @@ class ListeController extends AbstractController
             return new JsonResponse($serializer->serialize($errors, 'json'), JsonResponse::HTTP_BAD_REQUEST, [], true);
         }
 
-
         $idUser = $newListe->getUser()->getId() ?? -1;
         $currentListe->setUser($userRepository->find($idUser));
 
