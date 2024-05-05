@@ -84,7 +84,7 @@ class TacheController extends AbstractController
     {
         // Désérialise la tâche à partir des données JSON de la requête
         $tache = $serializer->deserialize($request->getContent(), Tache::class, 'json');
-        $tache->setStatus(true);
+        $tache->setStatus(false);
         // Vérifie les erreurs de validation
         $errors = $validator->validate($tache);
 
@@ -135,7 +135,7 @@ class TacheController extends AbstractController
     ): JsonResponse {
 
         $newTache = $serializer->deserialize($request->getContent(), Tache::class, 'json');
-        $currentTache->setTitre($newTache->getTitre());
+        $currentTache->setTitre($newTache->getTitre() ?? $currentTache->getTitre());
         $currentTache->setStatus(false);
         $currentTache->setContent($newTache->getContent());
         // On vérifie les erreurs
