@@ -34,7 +34,7 @@ class TacheController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/tache', name: 'TacheByListeId', methods: ['GET'])]
-    public function GetTacheByListeId(int $listeId, TagAwareCacheInterface $cachePool, TacheRepository $tacheRepository,  SerializerInterface $serializer): JsonResponse
+    public function GetTacheByListeId(int $listeId, TagAwareCacheInterface $cachePool, TacheRepository $tacheRepository, SerializerInterface $serializer): JsonResponse
     {
         // Récupère toutes les tâches appartenant à une liste spécifique (listeId)
         $tache = $tacheRepository->findBy(['liste' => $listeId]);
@@ -58,12 +58,12 @@ class TacheController extends AbstractController
      * @return JsonResponse
      */
     #[Route('/tache/{id}', name: 'TacheById', methods: ['GET'])]
-    public function GetTacheById(VersioningService $versioningService, Tache $tache,  SerializerInterface $serializer): JsonResponse
+    public function GetTacheById(VersioningService $versioningService, Tache $tache, SerializerInterface $serializer): JsonResponse
     {
         $version = $versioningService->getVersion();
         $context = SerializationContext::create()->setGroups(["getTache"]);
         $context->setVersion($version);
-        $jsonTache = $serializer->serialize($tache, 'json',  $context);
+        $jsonTache = $serializer->serialize($tache, 'json', $context);
         return new JsonResponse($jsonTache, Response::HTTP_OK, [], true);
     }
 
@@ -84,6 +84,7 @@ class TacheController extends AbstractController
     {
         // Désérialise la tâche à partir des données JSON de la requête
         $tache = $serializer->deserialize($request->getContent(), Tache::class, 'json');
+        $tache->setStatus(true);
         // Vérifie les erreurs de validation
         $errors = $validator->validate($tache);
 
@@ -103,10 +104,10 @@ class TacheController extends AbstractController
         $em->persist($tache);
         $em->flush();
 
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
         $context = SerializationContext::create()->setGroups(["getTache"]);
-        $jsonTache = $serializer->serialize($tache, 'json',  $context);
+        $jsonTache = $serializer->serialize($tache, 'json', $context);
 
         $location = $urlGenerator->generate('TacheById', ['listeId' => $listeId, 'id' => $tache->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
 
@@ -149,7 +150,7 @@ class TacheController extends AbstractController
 
         $em->persist($currentTache);
         $em->flush();
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
     }
@@ -166,7 +167,7 @@ class TacheController extends AbstractController
     {
         $em->remove($tache);
         $em->flush();
-        // On vide le cache. 
+        // On vide le cache.
         $cache->invalidateTags(["listeCache"]);
         return new JsonResponse(null, Response::HTTP_NO_CONTENT);
     }
